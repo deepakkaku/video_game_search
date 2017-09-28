@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Video Game Search</string>
+    <string name="title_place_holder">Game 1</string>
 </resources>
