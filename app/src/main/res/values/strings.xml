@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Quicken Games</string>
     <string name="title_place_holder">Game 1</string>
+    <string name="no_games">No games found</string>
 </resources>

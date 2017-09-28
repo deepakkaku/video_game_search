@@ -1,12 +1,14 @@
 package com.deepakkaku.videogamesearch.Adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.deepakkaku.videogamesearch.Custom.Game;
+import com.deepakkaku.videogamesearch.GameScreen;
 import com.deepakkaku.videogamesearch.MainActivity;
 import com.deepakkaku.videogamesearch.R;
 import com.deepakkaku.videogamesearch.ViewHolders.CustomViewHolder;
@@ -36,10 +38,20 @@ public class MainRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.V
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        Game game = games.get(position);
+        final Game game = games.get(position);
         CustomViewHolder customViewHolder = (CustomViewHolder)holder;
         Picasso.with(mContext).load(game.getImage().getSuperUrl()).fit().into(customViewHolder.game_image);
         customViewHolder.title.setText(game.getTitle());
+        customViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(mContext, GameScreen.class);
+                intent.putExtra("title",game.getTitle());
+                intent.putExtra("image",game.getImage().getSuperUrl());
+                intent.putExtra("description",game.getDescription());
+                ((MainActivity)mContext).startActivity(intent);
+            }
+        });
     }
 
     @Override

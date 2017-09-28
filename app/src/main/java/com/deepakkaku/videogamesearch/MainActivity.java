@@ -1,6 +1,9 @@
 package com.deepakkaku.videogamesearch;
 
+import android.content.DialogInterface;
+import android.preference.DialogPreference;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.deepakkaku.videogamesearch.Adapters.MainRecyclerViewAdapter;
@@ -36,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private MainRecyclerViewAdapter adapter;
     private ProgressBar progressBar;
+    private TextView noGamesText;
+    boolean isConnected = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,13 +50,23 @@ public class MainActivity extends AppCompatActivity {
         apiClient = new ApiClient(this);
         gianServices = apiClient.getGiantServices();
 
-        searchGame("Mortal");
-        recyclerView = (RecyclerView)findViewById(R.id.mainRecycler);
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        noGamesText = (TextView)findViewById(R.id.no_games_txt);
+
+        getTopGames();
+        recyclerView = (RecyclerView)findViewById(R.id.mainRecycler);
 
         adapter = new MainRecyclerViewAdapter(games);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(!isConnected){
+            getTopGames();
+        }
     }
 
     @Override
@@ -63,8 +79,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 searchViewAndroidActionBar.clearFocus();
-                Toast.makeText(MainActivity.this,query,Toast.LENGTH_LONG).show();
-
+              //  Toast.makeText(MainActivity.this,query,Toast.LENGTH_LONG).show();
+                noGamesText.setVisibility(View.INVISIBLE);
                 searchGame(query);
 
                 return true;
@@ -79,9 +95,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    private void searchGame(String query) {
+    private void searchGame(final String query) {
         progressBar.setVisibility(View.VISIBLE);
-        Call<ListResponse> listResponse = gianServices.getList(Config.API_KEY,Config.JSON,query,Config.GAME_RESOURCE,Config.FILTER_LIST);
+        Call<ListResponse> listResponse = gianServices.getList(Config.API_KEY,0,Config.JSON,query,Config.GAME_RESOURCE,Config.FILTER_LIST,10);
 
         listResponse.enqueue(new Callback<ListResponse>() {
             @Override
@@ -89,17 +105,76 @@ public class MainActivity extends AppCompatActivity {
 
 
                 if(response.isSuccessful()){
-                    games.clear();
-                    games.addAll(response.body().getGameList());
-                    adapter.notifyDataSetChanged();
-                    progressBar.setVisibility(View.GONE);
+                        games.clear();
+                        games.addAll(response.body().getGameList());
+                        if(games.isEmpty() || games.size()==0){
+                            noGamesText.setVisibility(View.VISIBLE);
+                        }
+                        adapter.notifyDataSetChanged();
+                        progressBar.setVisibility(View.INVISIBLE);
+
                 }
             }
 
             @Override
             public void onFailure(Call<ListResponse> call, Throwable t) {
 
-                Log.d("onResponse===",t.getMessage()+"");
+                Log.d("failure",t.getCause().getMessage());
+                isConnected = false;
+                progressBar.setVisibility(View.INVISIBLE);
+                AlertDialog.Builder alertBox = new AlertDialog.Builder(MainActivity.this);
+                alertBox.setMessage("No Internet Connection or network failure")
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener(){
+
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        })
+                .show();
+
+            }
+        });
+    }
+
+    private void getTopGames(){
+        progressBar.setVisibility(View.VISIBLE);
+        Call<ListResponse> listTopResponse = gianServices.getTopGames(Config.API_KEY,Config.JSON,Config.FILTER_LIST,10);
+
+
+        listTopResponse.enqueue(new Callback<ListResponse>() {
+            @Override
+            public void onResponse(Call<ListResponse> call, Response<ListResponse> response) {
+
+                if(response.isSuccessful()){
+                    games.clear();
+                    games.addAll(response.body().getGameList());
+                    if(games.isEmpty() || games.size()==0){
+                        noGamesText.setVisibility(View.VISIBLE);
+                    }
+                    adapter.notifyDataSetChanged();
+                    progressBar.setVisibility(View.INVISIBLE);
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ListResponse> call, Throwable t) {
+
+                Log.d("failure",t.getCause().getMessage());
+                isConnected = false;
+                progressBar.setVisibility(View.INVISIBLE);
+                AlertDialog.Builder alertBox = new AlertDialog.Builder(MainActivity.this);
+                alertBox.setMessage("No Internet Connection or network failure")
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener(){
+
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        })
+                        .show();
+
             }
         });
     }
