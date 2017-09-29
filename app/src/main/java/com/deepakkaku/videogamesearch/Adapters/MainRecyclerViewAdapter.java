@@ -56,7 +56,8 @@ public class MainRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.V
 
     @Override
     public int getItemCount() {
-        return games.size();
-
+       if(games.size()!=0)
+            return games.size();
+       return 0;
     }
 }

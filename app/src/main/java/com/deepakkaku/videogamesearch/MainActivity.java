@@ -29,6 +29,7 @@ import com.deepakkaku.videogamesearch.api.GiantBombService;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import retrofit2.Call;
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
     ApiClient apiClient;
     GiantBombService gianServices;
-    private ArrayList<Game> games = new ArrayList<>();
+    private ArrayList<Game> games;
     private RecyclerView recyclerView;
     private MainRecyclerViewAdapter adapter;
     private ProgressBar progressBar;
@@ -59,16 +60,24 @@ public class MainActivity extends AppCompatActivity {
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
         noGamesText = (TextView)findViewById(R.id.no_games_txt);
 
-        //load games on launch
-        getTopGames();
-
         //initializing recycler
         recyclerView = (RecyclerView)findViewById(R.id.mainRecycler);
 
         //setting custom adapter and scroll listener
+        games = new ArrayList<>();
+        if(savedInstanceState==null){
+            //load games on launch
+            getTopGames();
+        }
+        else{
+            games = savedInstanceState.getParcelableArrayList("games");
+        }
+
         adapter = new MainRecyclerViewAdapter(games);
-        recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+        
+
 
     }
 
@@ -76,7 +85,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        if(!games.isEmpty()){
+            outState.putParcelableArrayList("games", games);
+        }
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
