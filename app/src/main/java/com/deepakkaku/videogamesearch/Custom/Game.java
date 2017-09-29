@@ -1,7 +1,6 @@
 package com.deepakkaku.videogamesearch.Custom;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -23,10 +22,7 @@ public class Game {
     @Expose
     private Images image;
 
-    protected Game(Parcel in) {
-        title = in.readString();
-        description = in.readString();
-    }
+  
 
 
     public String getTitle() {
