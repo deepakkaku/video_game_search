@@ -1,6 +1,8 @@
 package com.deepakkaku.videogamesearch;
 
 import android.content.DialogInterface;
+import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.preference.DialogPreference;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
@@ -25,6 +27,7 @@ import com.deepakkaku.videogamesearch.Utill.Config;
 import com.deepakkaku.videogamesearch.api.ApiClient;
 import com.deepakkaku.videogamesearch.api.GiantBombService;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,37 +39,43 @@ public class MainActivity extends AppCompatActivity {
 
     ApiClient apiClient;
     GiantBombService gianServices;
-    private List<Game> games = new ArrayList<>();
+    private ArrayList<Game> games = new ArrayList<>();
     private RecyclerView recyclerView;
     private MainRecyclerViewAdapter adapter;
     private ProgressBar progressBar;
     private TextView noGamesText;
-    boolean isConnected = true;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //setting up the API call
         apiClient = new ApiClient(this);
         gianServices = apiClient.getGiantServices();
 
+        //initializing views
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
         noGamesText = (TextView)findViewById(R.id.no_games_txt);
 
+        //load games on launch
         getTopGames();
+
+        //initializing recycler
         recyclerView = (RecyclerView)findViewById(R.id.mainRecycler);
 
+        //setting custom adapter and scroll listener
         adapter = new MainRecyclerViewAdapter(games);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
     }
 
+
     @Override
-    protected void onResume() {
-        super.onResume();
-        if(!isConnected){
-            getTopGames();
-        }
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -95,6 +104,30 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if(id==R.id.action_refresh){
+            getTopGames();
+        }
+        if(id == R.id.action_about){
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Quicken Games is online game search engine.\nCreated by Deepak Kaku.")
+                    .setCancelable(false)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+
+                        }
+
+                    });
+
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void searchGame(final String query) {
         progressBar.setVisibility(View.VISIBLE);
         Call<ListResponse> listResponse = gianServices.getList(Config.API_KEY,0,Config.JSON,query,Config.GAME_RESOURCE,Config.FILTER_LIST,10);
@@ -120,10 +153,10 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(Call<ListResponse> call, Throwable t) {
 
                 Log.d("failure",t.getCause().getMessage());
-                isConnected = false;
+                //isConnected = false;
                 progressBar.setVisibility(View.INVISIBLE);
                 AlertDialog.Builder alertBox = new AlertDialog.Builder(MainActivity.this);
-                alertBox.setMessage("No Internet Connection or network failure")
+                alertBox.setMessage("No Internet Connection/network failure. Please check your connection")
                         .setPositiveButton("Ok", new DialogInterface.OnClickListener(){
 
                             @Override
@@ -162,10 +195,10 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(Call<ListResponse> call, Throwable t) {
 
                 Log.d("failure",t.getCause().getMessage());
-                isConnected = false;
+                //isConnected = false;
                 progressBar.setVisibility(View.INVISIBLE);
                 AlertDialog.Builder alertBox = new AlertDialog.Builder(MainActivity.this);
-                alertBox.setMessage("No Internet Connection or network failure")
+                alertBox.setMessage("No Internet Connection/network failure. Please check your connection")
                         .setPositiveButton("Ok", new DialogInterface.OnClickListener(){
 
                             @Override
@@ -178,4 +211,5 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 }

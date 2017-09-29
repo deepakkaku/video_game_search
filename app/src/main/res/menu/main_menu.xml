@@ -5,6 +5,13 @@
         android:id="@+id/action_search"
         app:actionViewClass="android.support.v7.widget.SearchView"
         app:showAsAction="always|collapseActionView"
-        android:icon="@android:drawable/ic_menu_search"
+        android:icon="@drawable/ic_search_white_24dp"
         android:title="Search" />
+
+    <item android:id="@+id/action_refresh" android:title="Refresh"
+        android:orderInCategory="101" app:showAsAction="never" />
+
+    <item android:id="@+id/action_about" android:title="About App"
+        android:orderInCategory="102" app:showAsAction="never" />
+
 </menu>
