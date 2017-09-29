@@ -50,8 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView noGamesText;
     private LinearLayoutManager linearLayoutManager;
-    private boolean isLoading = false;
-    private boolean isLastPage = false;
+    private String searchQuery;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -85,10 +84,6 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 
-        //setting pagination
-        recyclerView.setOnScrollChangeListener((View.OnScrollChangeListener) recyclerViewOnScrollListener);
-
-
     }
 
 
@@ -114,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
                 searchViewAndroidActionBar.clearFocus();
               //  Toast.makeText(MainActivity.this,query,Toast.LENGTH_LONG).show();
                 noGamesText.setVisibility(View.INVISIBLE);
+                searchQuery = query;
                 searchGame(query);
 
                 return true;
@@ -132,11 +128,16 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if(id==R.id.action_refresh){
-            getTopGames();
+            if(searchQuery==null || searchQuery.equals("")){
+                getTopGames();
+            }
+           else{
+                searchGame(searchQuery);
+            }
         }
         if(id == R.id.action_about){
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Quicken Games is online game search engine.\nCreated by Deepak Kaku.")
+            builder.setMessage("Quicken Games is online game search engine. For more informtation please check the README file.\nCreated by Deepak Kaku.")
                     .setCancelable(false)
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
@@ -153,8 +154,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void searchGame(final String query) {
+
         progressBar.setVisibility(View.VISIBLE);
-        Call<ListResponse> listResponse = gianServices.getList(Config.API_KEY,0,Config.JSON,query,Config.GAME_RESOURCE,Config.FILTER_LIST,10);
+        Call<ListResponse> listResponse = gianServices.getList(Config.API_KEY,0,Config.JSON,query,Config.GAME_RESOURCE,Config.FILTER_LIST,Config.PAGE_SIZE);
 
         listResponse.enqueue(new Callback<ListResponse>() {
             @Override
@@ -196,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void getTopGames(){
         progressBar.setVisibility(View.VISIBLE);
-        Call<ListResponse> listTopResponse = gianServices.getTopGames(Config.API_KEY,Config.JSON,Config.FILTER_LIST,10);
+        Call<ListResponse> listTopResponse = gianServices.getTopGames(Config.API_KEY,Config.JSON,Config.FILTER_LIST,Config.PAGE_SIZE);
 
 
         listTopResponse.enqueue(new Callback<ListResponse>() {
@@ -209,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
                     if(games.isEmpty() || games.size()==0){
                         noGamesText.setVisibility(View.VISIBLE);
                     }
+
                     adapter.notifyDataSetChanged();
                     progressBar.setVisibility(View.INVISIBLE);
 
@@ -236,34 +239,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private RecyclerView.OnScrollListener recyclerViewOnScrollListener = new RecyclerView.OnScrollListener() {
-        @Override
-        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-            super.onScrollStateChanged(recyclerView, newState);
-        }
 
-        @Override
-        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-            super.onScrolled(recyclerView, dx, dy);
-            int visibleItemCount = linearLayoutManager.getChildCount();
-            int totalItemCount = linearLayoutManager.getItemCount();
-            int firstVisibleItemPosition = linearLayoutManager.findFirstVisibleItemPosition();
-
-
-            if (!isLoading && !isLastPage) {
-                if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount
-                        && firstVisibleItemPosition >= 0
-                        && totalItemCount >= Config.PAGE_SIZE) {
-
-                    loadMoreItems();
-                }
-            }
-        }
-    };
-
-    private void loadMoreItems() {
-
-
-    }
 
 }
