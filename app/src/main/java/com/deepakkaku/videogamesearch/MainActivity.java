@@ -1,9 +1,11 @@
 package com.deepakkaku.videogamesearch;
 
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Parcelable;
 import android.os.PersistableBundle;
 import android.preference.DialogPreference;
+import android.support.annotation.RequiresApi;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -36,6 +38,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static android.nfc.tech.MifareUltralight.PAGE_SIZE;
+
 public class MainActivity extends AppCompatActivity {
 
     ApiClient apiClient;
@@ -45,8 +49,11 @@ public class MainActivity extends AppCompatActivity {
     private MainRecyclerViewAdapter adapter;
     private ProgressBar progressBar;
     private TextView noGamesText;
+    private LinearLayoutManager linearLayoutManager;
+    private boolean isLoading = false;
+    private boolean isLastPage = false;
 
-
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,9 +81,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         adapter = new MainRecyclerViewAdapter(games);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        linearLayoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
-        
+
+        //setting pagination
+        recyclerView.setOnScrollChangeListener((View.OnScrollChangeListener) recyclerViewOnScrollListener);
 
 
     }
@@ -224,6 +234,36 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    private RecyclerView.OnScrollListener recyclerViewOnScrollListener = new RecyclerView.OnScrollListener() {
+        @Override
+        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+            super.onScrollStateChanged(recyclerView, newState);
+        }
+
+        @Override
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            super.onScrolled(recyclerView, dx, dy);
+            int visibleItemCount = linearLayoutManager.getChildCount();
+            int totalItemCount = linearLayoutManager.getItemCount();
+            int firstVisibleItemPosition = linearLayoutManager.findFirstVisibleItemPosition();
+
+
+            if (!isLoading && !isLastPage) {
+                if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount
+                        && firstVisibleItemPosition >= 0
+                        && totalItemCount >= Config.PAGE_SIZE) {
+
+                    loadMoreItems();
+                }
+            }
+        }
+    };
+
+    private void loadMoreItems() {
+
+
     }
 
 }

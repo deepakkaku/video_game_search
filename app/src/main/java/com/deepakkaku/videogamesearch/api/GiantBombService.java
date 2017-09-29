@@ -19,4 +19,8 @@ public interface GiantBombService {
    @GET("/api/games")
    Call<ListResponse> getTopGames(@Query("api_key") String api_key,@Query("format") String format,@Query("filed_list") String filed_list,@Query("limit") int limit);
 
+   @GET("/api/games")
+   Call<ListResponse> getMoreGames(@Query("api_key") String api_key,@Query("page")int page,@Query("format") String format,@Query("query") String query,@Query("resources") String resources, @Query("filed_list") String filed_list, @Query("limit") int limit);
+
+
 }

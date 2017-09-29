@@ -11,7 +11,7 @@ public class Config {
     public static final String FILTER_LIST = "name,description,image";
     public static final String JSON = "json";
     public static final String GAME_RESOURCE = "game";
-
+    public static final int PAGE_SIZE=10;
 
 
 
